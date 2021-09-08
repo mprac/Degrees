@@ -1,7 +1,7 @@
 import csv
 import sys
 
-from util import Node, StackFrontier, QueueFrontier
+from util import Node, QueueFrontier
 
 # Maps names to a set of corresponding person_ids
 # a way to look up a person by their name
@@ -19,6 +19,8 @@ def load_data(directory):
     Load data from CSV files into memory.
     """
     # Load people
+    # people = {'102': {'name': 'Kevin Bacon', 'birth': '1958', 'movies': set()}, '129': {'name': 'Tom Cruise', 'birth': '1962', 'movies': set()} etc...
+    # names = {'kevin bacon': {'102'}, 'tom cruise': {'129'} etc... 
     with open(f"{directory}/people.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -91,10 +93,44 @@ def shortest_path(source, target):
     that connect the source to the target.
 
     If no possible path, returns None.
+
+    function should return a list, where each list item is the next pair in the path from the source to the target, each paird should be a tuple of two ints (movie_id, person_id) e.g [(1,2)(3,4)] means source starred in movie 1 with person 2, person 2 starred in movie 3 with person 4, and person 4 is the target. 
     """
 
-    # TODO
-    raise NotImplementedError
+    num_explored = 0
+
+    # state is person action is movie
+    start = Node(state=source, parent=None, action=None)
+    frontier = QueueFrontier()
+    frontier.add(start)
+
+    explored = set()
+
+    while True:
+        # If no possible path, return None
+        if frontier.empty():
+            return None
+
+        node = frontier.remove()
+        num_explored += 1
+
+        # If node is the target, then we have a solution
+        if node.state == target:
+            shortest_list = []
+            while node.parent is not None:
+                pair = (node.action, node.state)
+                shortest_list.append(pair)
+                node = node.parent
+            shortest_list.reverse()
+            return shortest_list
+        # Add person_id to explored
+        explored.add(node.state)
+
+        # Add (movie_id, person_id) pairs for people who starred with a given person to the frontier
+        for movie_id, person_id in neighbors_for_person(node.state):
+            if not frontier.contains_state(person_id) and person_id not in explored:
+                child = Node(state=person_id, parent=node, action=movie_id)
+                frontier.add(child)
 
 
 def person_id_for_name(name):
