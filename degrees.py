@@ -99,7 +99,7 @@ def shortest_path(source, target):
 
     num_explored = 0
 
-    # state is person action is movie
+    # state is person, action is movie
     start = Node(state=source, parent=None, action=None)
     frontier = QueueFrontier()
     frontier.add(start)
